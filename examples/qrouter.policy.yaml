@@ -1,0 +1,6 @@
+rules:
+  - if: "n_qubits <= 20 and not requires_real_hw"
+    backend: "local:qulacs"
+  - if: "n_qubits <= 30"
+    backend: "braket:sv1"
+  - default: "ibm:ibm_brisbane"

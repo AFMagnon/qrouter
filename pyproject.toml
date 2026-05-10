@@ -1,0 +1,215 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "qrouter"
+version = "0.0.1"
+description = "A unified Python router for quantum computing platforms (Qiskit, Amazon Braket, QURI Parts, OQTOPUS, OpenQASM 2/3)."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11,<3.14"
+authors = [
+    { name = "Keita Matsumoto", email = "keitamatsumoto0816@gmail.com" },
+]
+keywords = [
+    "quantum",
+    "qiskit",
+    "braket",
+    "quri-parts",
+    "oqtopus",
+    "openqasm",
+    "router",
+    "transpiler",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "pydantic>=2.7",
+    "pydantic-settings>=2.2",
+    "structlog>=24.1",
+    "httpx>=0.27",
+    "openqasm3>=1.0",
+    "tenacity>=8.2",
+    "PyYAML>=6.0",
+    "typing-extensions>=4.10",
+]
+
+[project.optional-dependencies]
+qiskit = [
+    "qiskit>=1.4,<3.0",
+    "qiskit-ibm-runtime>=0.25",
+    "qiskit-aer>=0.14",
+    "qiskit-qasm3-import>=0.5",
+]
+braket = [
+    "amazon-braket-sdk>=1.85",
+    "boto3>=1.34",
+]
+quri = [
+    "quri-parts>=0.20,<1.0",
+    "quri-parts-circuit>=0.20,<1.0",
+    "quri-parts-qulacs>=0.20,<1.0",
+    "quri-parts-openqasm>=0.20,<1.0",
+    "quri-parts-qiskit>=0.20,<1.0",
+]
+oqtopus = [
+    "quri-parts-oqtopus>=1.0,<2.0",
+]
+all = [
+    "qrouter[qiskit,braket,quri,oqtopus]",
+]
+
+[project.urls]
+Homepage = "https://github.com/keitamatsumoto/qrouter"
+Repository = "https://github.com/keitamatsumoto/qrouter"
+Issues = "https://github.com/keitamatsumoto/qrouter/issues"
+Changelog = "https://github.com/keitamatsumoto/qrouter/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qrouter"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/examples",
+    "/README.md",
+    "/LICENSE",
+    "/NOTICE",
+    "/CHANGELOG.md",
+]
+
+# ---- uv / PEP 735 dependency groups -----------------------------------
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "hypothesis>=6.100",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "pyright>=1.1.360",
+    "pre-commit>=3.7",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+    "types-PyYAML>=6.0",
+]
+
+# ---- ruff --------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",
+    "I",
+    "B",
+    "UP",
+    "SIM",
+    "RUF",
+    "N",
+    "S",
+    "C4",
+    "PIE",
+    "RET",
+    "PT",
+    "PYI",
+    "TID",
+]
+ignore = [
+    "E501",
+    "S101",
+    # `out = ...; return out` after a pipeline of regex substitutions reads
+    # better than chaining the calls inline.
+    "RET504",
+    # `assert` inside src/ is a runtime invariant check, not a pytest assert;
+    # PT018's "split compound assertion" rule is meant for tests only.
+    "PT018",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S106", "S311"]
+"examples/**/*.py" = ["S101", "T201"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["qrouter"]
+
+# ---- mypy --------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_reexport = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "qiskit.*",
+    "qiskit_ibm_runtime.*",
+    "qiskit_aer.*",
+    "braket.*",
+    "boto3.*",
+    "botocore.*",
+    "quri_parts.*",
+    "openqasm3.*",
+]
+ignore_missing_imports = true
+
+# ---- pytest ------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+markers = [
+    "unit: unit tests (no external services)",
+    "integration: requires real backends; needs credentials",
+    "slow: long-running tests",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    # Upstream deprecations from qiskit-aer (against qiskit 2.x). Track,
+    # don't fail on. Remove when qiskit-aer 0.18+ drops the access.
+    "ignore:The property ``qiskit.circuit.instruction.Instruction.condition``:DeprecationWarning",
+    # quri-parts-qiskit iterating CircuitInstruction; harmless.
+    "ignore:Treating CircuitInstruction as an iterable is deprecated:DeprecationWarning",
+]
+
+# ---- coverage ----------------------------------------------------------
+[tool.coverage.run]
+source = ["src/qrouter"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@abstractmethod",
+    "\\.\\.\\.",
+]
+show_missing = true
