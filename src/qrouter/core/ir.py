@@ -149,12 +149,12 @@ def extract_metadata(qasm: str) -> CircuitMetadata:
 
 
 def _extract_metadata_via_ast(qasm: str) -> CircuitMetadata:
-    import openqasm3
     from openqasm3 import ast
+    from openqasm3.parser import parse
 
     from qrouter.core.circuit import CircuitMetadata
 
-    program = openqasm3.parse(qasm)
+    program = parse(qasm)
 
     n_qubits = 0
     n_clbits = 0
@@ -243,10 +243,10 @@ def _extract_metadata_via_regex(qasm: str) -> CircuitMetadata:
 
 def validate_qasm3(src: str) -> None:
     """Raise `ConversionError` if the source does not parse as QASM 3."""
-    import openqasm3
+    from openqasm3.parser import parse
 
     try:
-        openqasm3.parse(src)
+        parse(src)
     except Exception as exc:
         raise ConversionError(f"Invalid OpenQASM 3 source: {exc}") from exc
 
