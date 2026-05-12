@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from typing import Any
+from typing import Any, cast
 
 import structlog
 
@@ -64,7 +64,7 @@ def get_logger(name: str) -> structlog.stdlib.BoundLogger:
     """Return a structlog logger; auto-configures with defaults on first call."""
     if not _CONFIGURED:
         configure_logging()
-    return structlog.get_logger(name)
+    return cast(structlog.stdlib.BoundLogger, structlog.get_logger(name))
 
 
 __all__ = ["configure_logging", "get_logger"]

@@ -5,7 +5,7 @@ from __future__ import annotations
 import importlib
 from importlib.metadata import entry_points
 from threading import RLock
-from typing import Final
+from typing import Final, cast
 
 from qrouter.backends.base import Backend
 from qrouter.core.exceptions import QRouterError
@@ -43,7 +43,7 @@ def _try_load_builtin(name: str) -> Backend | None:
     if cls is None:  # pragma: no cover
         return None
     try:
-        instance = cls(*args)
+        instance = cast(Backend, cls(*args))
     except Exception:  # pragma: no cover
         return None
     register_backend(instance)

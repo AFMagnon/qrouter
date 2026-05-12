@@ -15,7 +15,7 @@ from __future__ import annotations
 import importlib
 from importlib.metadata import entry_points
 from threading import RLock
-from typing import Final
+from typing import Final, cast
 
 from qrouter.adapters.base import CircuitAdapter
 from qrouter.core.exceptions import QRouterError
@@ -54,7 +54,7 @@ def _try_load_builtin(name: str) -> CircuitAdapter | None:
     if cls is None:  # pragma: no cover — would indicate a packaging bug
         return None
     try:
-        instance = cls()
+        instance = cast(CircuitAdapter, cls())
     except Exception:  # pragma: no cover
         return None
     register_adapter(instance)

@@ -15,7 +15,7 @@ inferred from the object's module name (``qiskit.*`` → ``qiskit``,
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from qrouter.adapters.openqasm_adapter import OpenQasmAdapter
 from qrouter.adapters.registry import get_adapter
@@ -110,12 +110,12 @@ def to_quri(source: Any) -> Any:
 
 def to_qasm(source: Any, *, version: int = 3) -> str:
     """Convert ``source`` to an OpenQASM string (version 2 or 3)."""
-    return convert(source, "openqasm", version=version)
+    return cast(str, convert(source, "openqasm", version=version))
 
 
 def to_ir(source: Any) -> Circuit:
     """Convert ``source`` to the canonical :class:`Circuit` (OpenQASM 3)."""
-    return convert(source, "ir")
+    return cast(Circuit, convert(source, "ir"))
 
 
 __all__ = [
